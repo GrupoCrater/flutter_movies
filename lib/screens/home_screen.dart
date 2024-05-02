@@ -16,17 +16,19 @@ class HomeScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'LDSW Widgets', //Text
-          style: TextStyle(color: Colors.white), //text color
+          'LdSW Widgets', //Text
+          style:
+              TextStyle(color: Color.fromARGB(255, 255, 255, 255)), //text color
         ),
         backgroundColor: Colors.green[800],
       ),
+      backgroundColor: Colors.grey[200], //Color de fondo de palicacion
       body: Container(
         margin: const EdgeInsets.all(10),
         width: double.infinity,
         height: 350,
-        decoration:
-            const BoxDecoration(color: Color.fromARGB(255, 212, 212, 212)),
+        decoration: BoxDecoration(
+            color: Colors.white, borderRadius: BorderRadius.circular(15)),
         child: Container(
           padding: const EdgeInsets.all(10),
           child: Column(
@@ -59,27 +61,29 @@ class HomeScreen extends StatelessWidget {
                 child: Image.network(
                     "https://ichef.bbci.co.uk/ace/ws/640/cpsprodpb/11774/production/_123004517_mediaitem123003832.jpg"),
               ),
-              Container(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    TextButton(
-                        onPressed: () {},
-                        child: const Text("Me gusta", style: textStyle)),
-                    TextButton(
-                        onPressed: () {},
-                        child: const Text(
-                          "Comentar",
-                          style: textStyle,
-                        )),
-                    TextButton(
-                        onPressed: () {},
-                        child: const Text(
-                          "Compartir",
-                          style: textStyle,
-                        )),
-                  ],
-                ),
+              Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      TextButton(
+                          onPressed: () {},
+                          child: const Text("Me gusta", style: textStyle)),
+                      TextButton(
+                          onPressed: () {},
+                          child: const Text(
+                            "Comentar",
+                            style: textStyle,
+                          )),
+                      TextButton(
+                          onPressed: () {},
+                          child: const Text(
+                            "Compartir",
+                            style: textStyle,
+                          )),
+                    ],
+                  )
+                ],
               )
             ],
           ),
