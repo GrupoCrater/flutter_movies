@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "432260917968",
+    "project_id": "flutter-test-c8dd7",
+    "storage_bucket": "flutter-test-c8dd7.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:432260917968:android:e91e869a570c05bd4b8cd5",
+        "android_client_info": {
+          "package_name": "com.example.ldsw_widgets"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAreqa4r8u7acTTGhQPn5dLI3BCvEcOj6w"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

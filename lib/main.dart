@@ -4,8 +4,20 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:logger/logger.dart';
 
+// Importaciones firebase
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+
+//Servicios
+
 final logger = Logger();
-void main() => runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  runApp(const MyApp());
+}
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key); //AQUI
@@ -48,7 +60,7 @@ class MyHomePage extends StatelessWidget {
             ),
           ),
           const Positioned(
-            top: 40,
+            top: 10,
             left: 0,
             right: 0,
             child: Center(
@@ -63,7 +75,7 @@ class MyHomePage extends StatelessWidget {
 
           //Boton flotante
           Positioned(
-            top: 120,
+            top: 70,
             left: 0,
             right: 0,
             child: Center(
@@ -77,15 +89,17 @@ class MyHomePage extends StatelessWidget {
                           builder: (context) => const PokeInfoPage()),
                     );
                   },
-                  tooltip: 'Ver Catalogo',
+                  tooltip: 'Pokemon API',
                   child: const Text(
-                    'Ver Catálogo',
+                    'Pokemon API',
                     style: TextStyle(fontSize: 24),
                   ),
                 ),
               ),
             ),
-          )
+          ),
+
+          //Boton flotante
         ],
       ),
     );
