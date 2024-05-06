@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/widgets.dart';
 import 'package:logger/logger.dart';
 
 // Importaciones firebase
@@ -13,23 +14,22 @@ FirebaseFirestore db = FirebaseFirestore.instance;
 
 Future<List<Movie>> getMovies() async {
   List<Movie> movies = [];
-  CollectionReference collectionReference = db.collection('people');
-
-  QuerySnapshot querySnapshot = await collectionReference.get();
+  QuerySnapshot querySnapshot = await db.collection('people').get();
 
   querySnapshot.docs.forEach((document) {
+    String documentId = document.id; // Obtener el ID del documento
     Map<String, dynamic>? data = document.data() as Map<String, dynamic>?;
+
     if (data != null) {
-      String titulo =
-          data['Titulo'] ?? ''; // Si es nulo, asigna una cadena vacía
-      int year = data['Año'] ??
-          0; // Si es nulo, asigna 0 (o cualquier otro valor predeterminado)
+      String titulo = data['Titulo'] ?? '';
+      int year = data['Año'] ?? 0;
       String genero = data['Genero'] ?? '';
       String director = data['Director'] ?? '';
       String imagen = data['Imagen'] ?? '';
       String sinopsis = data['Sinopsis'] ?? '';
 
       Movie movie = Movie(
+        id: documentId, // Asignar el ID del documento al objeto Movie
         titulo: titulo,
         year: year,
         genero: genero,
@@ -141,6 +141,7 @@ class MyHomePage extends StatelessWidget {
 }
 
 class Movie {
+  final String id;
   final String titulo;
   final int year;
   final String genero;
@@ -149,6 +150,7 @@ class Movie {
   final String sinopsis;
 
   Movie({
+    required this.id,
     required this.titulo,
     required this.year,
     required this.genero,
@@ -166,6 +168,10 @@ class MoviesInfoPage extends StatefulWidget {
 }
 
 class _MoviesInfoPageState extends State<MoviesInfoPage> {
+  Future<void> refreshMovies() async {
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -200,70 +206,83 @@ class _MoviesInfoPageState extends State<MoviesInfoPage> {
               itemCount: movies.length,
               itemBuilder: (context, index) {
                 Movie movie = movies[index];
-                return Container(
-                  margin: const EdgeInsets.all(
-                      15), // Margen alrededor del contenedor
-                  padding:
-                      const EdgeInsets.all(8), // Relleno dentro del contenedor
-                  decoration: BoxDecoration(
-                    color: Colors.white, // Color de fondo blanco
-                    borderRadius:
-                        BorderRadius.circular(10), // Bordes redondeados
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.5), // Sombra gris
-                        spreadRadius: 2, // Extensión de la sombra
-                        blurRadius: 5, // Desenfoque de la sombra
-                        offset:
-                            const Offset(0, 3), // Desplazamiento de la sombra
-                      ),
-                    ],
-                  ),
-                  child: ListTile(
-                    title: Center(
-                      child: Text(
-                        movie.titulo,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
+                return GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => MovieDetailPage(
+                          movie: movie,
+                          onMovieDeleted: refreshMovies,
                         ),
                       ),
+                    );
+                  },
+                  child: Container(
+                    margin: const EdgeInsets.all(
+                        15), // Margen alrededor del contenedor
+                    padding: const EdgeInsets.all(
+                        8), // Relleno dentro del contenedor
+                    decoration: BoxDecoration(
+                      color: Colors.white, // Color de fondo blanco
+                      borderRadius:
+                          BorderRadius.circular(10), // Bordes redondeados
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.5), // Sombra gris
+                          spreadRadius: 2, // Extensión de la sombra
+                          blurRadius: 5, // Desenfoque de la sombra
+                          offset:
+                              const Offset(0, 3), // Desplazamiento de la sombra
+                        ),
+                      ],
                     ),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Center(
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 10),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(10),
-                              child: Image.network(
-                                movie.imagen,
-                                width: 400,
-                                height: 200,
-                                fit: BoxFit.cover,
+                    child: ListTile(
+                      title: Center(
+                        child: Text(
+                          movie.titulo,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Center(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(10),
+                                child: Image.network(
+                                  movie.imagen,
+                                  width: 400,
+                                  height: 200,
+                                  fit: BoxFit.cover,
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                'Año: ${movie.year}',
-                                textAlign: TextAlign.left,
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  'Año: ${movie.year}',
+                                  textAlign: TextAlign.left,
+                                ),
                               ),
-                            ),
-                            Expanded(
-                              child: Text(
-                                'Año: ${movie.genero}',
-                                textAlign: TextAlign.right,
+                              Expanded(
+                                child: Text(
+                                  'Año: ${movie.genero}',
+                                  textAlign: TextAlign.right,
+                                ),
                               ),
-                            ),
-                          ],
-                        )
-                      ],
+                            ],
+                          )
+                        ],
+                      ),
                     ),
                   ),
                 );
@@ -271,6 +290,141 @@ class _MoviesInfoPageState extends State<MoviesInfoPage> {
             );
           }
         },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          // Lógica para añadir una nueva película
+        },
+        backgroundColor: Colors.green, // Color del botón flotante
+        foregroundColor: Colors.white, // Color del icono
+        child: Icon(Icons.add),
+      ),
+    );
+  }
+}
+
+class MovieDetailPage extends StatelessWidget {
+  final Movie movie;
+  final VoidCallback onMovieDeleted;
+
+  const MovieDetailPage(
+      {Key? key, required this.movie, required this.onMovieDeleted})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          movie.titulo,
+          style: const TextStyle(color: Colors.white),
+        ),
+        backgroundColor: const Color.fromARGB(255, 40, 46, 136),
+        iconTheme: const IconThemeData(color: Colors.white),
+      ),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Image.network(
+                movie.imagen,
+                width: double.infinity,
+                height: 300,
+                fit: BoxFit.cover,
+              ),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 0.0),
+                      child: Text(
+                        'Año: ${movie.year}',
+                        textAlign: TextAlign.left,
+                        style: const TextStyle(fontSize: 18),
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 0.0),
+                      child: Text(
+                        'Genero: ${movie.genero}',
+                        textAlign: TextAlign.left,
+                        style: const TextStyle(fontSize: 18),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 15),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Director: ${movie.director}',
+                      style: TextStyle(fontSize: 18),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                'Sinopsis:',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              Text(
+                movie.sinopsis,
+                style: TextStyle(fontSize: 16),
+                textAlign: TextAlign.justify,
+              ),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const SizedBox(width: 10),
+                  SizedBox(
+                    width: 180,
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        // Logica para eliminar la pelicula
+                        if (movie.id != null && movie.id.isNotEmpty) {
+                          try {
+                            // Eliminar la pelicula de la base de datos
+                            await db
+                                .collection('people')
+                                .doc(movie.id)
+                                .delete();
+                            logger.i('Pelicula eliminada con ID: ${movie.id}');
+                            onMovieDeleted(); // Llamar a la función de actualización
+
+                            // Rregesar a la vista "Movies FIrebase"
+                            Navigator.pop(context);
+                          } catch (e) {
+                            logger.e('Error al eliminar la película: ${e}');
+                          }
+                        } else {
+                          logger.e('El ID de la película es nulo o vacío.');
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red[800],
+                      ),
+                      child: const Text(
+                        'Eliminar',
+                        style: TextStyle(fontSize: 20, color: Colors.white),
+                      ),
+                    ),
+                  ),
+                ],
+              )
+            ],
+          ),
+        ),
       ),
     );
   }
