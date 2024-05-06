@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'package:logger/logger.dart';
 
 // Importaciones firebase
@@ -9,6 +7,42 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
 //Servicios
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+FirebaseFirestore db = FirebaseFirestore.instance;
+
+Future<List<Movie>> getMovies() async {
+  List<Movie> movies = [];
+  CollectionReference collectionReference = db.collection('people');
+
+  QuerySnapshot querySnapshot = await collectionReference.get();
+
+  querySnapshot.docs.forEach((document) {
+    Map<String, dynamic>? data = document.data() as Map<String, dynamic>?;
+    if (data != null) {
+      String titulo =
+          data['Titulo'] ?? ''; // Si es nulo, asigna una cadena vacía
+      int year = data['Año'] ??
+          0; // Si es nulo, asigna 0 (o cualquier otro valor predeterminado)
+      String genero = data['Genero'] ?? '';
+      String director = data['Director'] ?? '';
+      String imagen = data['Imagen'] ?? '';
+      String sinopsis = data['Sinopsis'] ?? '';
+
+      Movie movie = Movie(
+        titulo: titulo,
+        year: year,
+        genero: genero,
+        director: director,
+        imagen: imagen,
+        sinopsis: sinopsis,
+      );
+      movies.add(movie);
+    }
+  });
+
+  return movies;
+}
 
 final logger = Logger();
 void main() async {
@@ -74,8 +108,10 @@ class MyHomePage extends StatelessWidget {
           ),
 
           //Boton flotante
+
+          //Boton flotante
           Positioned(
-            top: 70,
+            top: 140,
             left: 0,
             right: 0,
             child: Center(
@@ -86,138 +122,155 @@ class MyHomePage extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => const PokeInfoPage()),
+                          builder: (context) => const MoviesInfoPage()),
                     );
                   },
-                  tooltip: 'Pokemon API',
+                  tooltip: 'Movies Firebase',
                   child: const Text(
-                    'Pokemon API',
+                    'Movies Firebase',
                     style: TextStyle(fontSize: 24),
                   ),
                 ),
               ),
             ),
-          ),
-
-          //Boton flotante
+          )
         ],
       ),
     );
   }
 }
 
-class PokeInfoPage extends StatefulWidget {
-  const PokeInfoPage({Key? key}) : super(key: key);
+class Movie {
+  final String titulo;
+  final int year;
+  final String genero;
+  final String director;
+  final String imagen;
+  final String sinopsis;
 
-  @override
-  _PokeInfoPageState createState() => _PokeInfoPageState();
+  Movie({
+    required this.titulo,
+    required this.year,
+    required this.genero,
+    required this.director,
+    required this.imagen,
+    required this.sinopsis,
+  });
 }
 
-class _PokeInfoPageState extends State<PokeInfoPage> {
-  late Future<List<Map<String, dynamic>>> pokemonDataList = Future.value([]);
-
-  Future<List<Map<String, dynamic>>> fetchData() async {
-    final List<Future<Map<String, dynamic>>> futures = [];
-    for (int i = 1; i <= 20; i++) {
-      futures.add(http
-          .get(Uri.parse('https://pokeapi.co/api/v2/pokemon/$i'))
-          .then((response) {
-        if (response.statusCode == 200) {
-          return json.decode(response.body);
-        } else {
-          throw Exception('Failed to load data for Pokemon $i');
-        }
-      }));
-    }
-    return Future.wait(futures);
-  }
+class MoviesInfoPage extends StatefulWidget {
+  const MoviesInfoPage({Key? key}) : super(key: key);
 
   @override
-  void initState() {
-    super.initState();
-    fetchData().then((data) {
-      setState(() {
-        pokemonDataList = Future.value(data);
-      });
-    }).catchError((error) {
-      logger.e('Error fetching data: $error');
-    });
-  }
+  _MoviesInfoPageState createState() => _MoviesInfoPageState();
+}
 
+class _MoviesInfoPageState extends State<MoviesInfoPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Información de Pokémon',
+          'Movies Firebase',
           style: TextStyle(
             color: Colors.white, //text color
           ),
         ),
         backgroundColor: const Color.fromARGB(255, 40, 46, 136),
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
-      body: Container(
-        color: const Color.fromARGB(255, 223, 223, 223),
-        child: FutureBuilder<List<Map<String, dynamic>>>(
-          future: pokemonDataList,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            } else if (snapshot.hasError) {
-              return Center(child: Text('Error:${snapshot.error}'));
-            } else {
-              if (snapshot.data != null) {
-                return ListView.builder(
-                  itemCount: snapshot.data!.length,
-                  itemBuilder: (context, index) {
-                    final pokemonData = snapshot.data![index];
-                    return Padding(
-                      padding: const EdgeInsets.all(10),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                        padding: const EdgeInsets.all(20),
-                        width: 370,
-                        child: Column(
-                          children: [
-                            Text(
-                              '${pokemonData['name'] ?? 'Nombre no disponible'}',
-                              style: const TextStyle(
-                                  fontSize: 30, fontWeight: FontWeight.bold),
-                            ),
-                            Image.network(
-                              pokemonData['sprites']?['front_default'] ??
-                                  'URL_POR_DEFECTO_SI_ES_NULO',
-                              height: 100,
-                              width: 100,
-                            ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                Text(
-                                  'Altura:  ${pokemonData['height'] ?? 'Altura no disponible'}',
-                                  style: const TextStyle(fontSize: 20),
-                                ),
-                                Text(
-                                  'Peso:  ${pokemonData['weight'] ?? 'Peso no disponible'}',
-                                  style: const TextStyle(fontSize: 20),
-                                ),
-                              ],
-                            ),
-                          ],
+      backgroundColor: Colors.grey[200],
+      body: FutureBuilder<List<Movie>>(
+        future: getMovies(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          } else if (snapshot.hasError) {
+            return Center(
+              child: Text('Error: ${snapshot.error}'),
+            );
+          } else {
+            List<Movie> movies = snapshot.data!;
+            movies.sort(
+                (a, b) => a.titulo.compareTo(b.titulo)); // Ordenar por título
+
+            return ListView.builder(
+              itemCount: movies.length,
+              itemBuilder: (context, index) {
+                Movie movie = movies[index];
+                return Container(
+                  margin: const EdgeInsets.all(
+                      15), // Margen alrededor del contenedor
+                  padding:
+                      const EdgeInsets.all(8), // Relleno dentro del contenedor
+                  decoration: BoxDecoration(
+                    color: Colors.white, // Color de fondo blanco
+                    borderRadius:
+                        BorderRadius.circular(10), // Bordes redondeados
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.5), // Sombra gris
+                        spreadRadius: 2, // Extensión de la sombra
+                        blurRadius: 5, // Desenfoque de la sombra
+                        offset:
+                            const Offset(0, 3), // Desplazamiento de la sombra
+                      ),
+                    ],
+                  ),
+                  child: ListTile(
+                    title: Center(
+                      child: Text(
+                        movie.titulo,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                    );
-                  },
+                    ),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Center(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: Image.network(
+                                movie.imagen,
+                                width: 400,
+                                height: 200,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                          ),
+                        ),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                'Año: ${movie.year}',
+                                textAlign: TextAlign.left,
+                              ),
+                            ),
+                            Expanded(
+                              child: Text(
+                                'Año: ${movie.genero}',
+                                textAlign: TextAlign.right,
+                              ),
+                            ),
+                          ],
+                        )
+                      ],
+                    ),
+                  ),
                 );
-              } else {
-                return const Center(child: Text('No se han cargado datos'));
-              }
-            }
-          },
-        ),
+              },
+            );
+          }
+        },
       ),
     );
   }
