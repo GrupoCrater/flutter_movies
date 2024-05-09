@@ -293,11 +293,112 @@ class _MoviesInfoPageState extends State<MoviesInfoPage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // Lógica para añadir una nueva película
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => AgregarPeliculaScreen()),
+          );
         },
         backgroundColor: Colors.green, // Color del botón flotante
         foregroundColor: Colors.white, // Color del icono
-        child: Icon(Icons.add),
+        child: const Icon(Icons.add),
+      ),
+    );
+  }
+}
+
+class AgregarPeliculaScreen extends StatelessWidget {
+  final TextEditingController tituloController = TextEditingController();
+  final TextEditingController anoController = TextEditingController();
+  final TextEditingController generoController = TextEditingController();
+  final TextEditingController directorController = TextEditingController();
+  final TextEditingController sinopsisController = TextEditingController();
+  final TextEditingController imagenController = TextEditingController();
+
+  final FirebaseFirestore db = FirebaseFirestore.instance;
+
+  Future<void> guardarPelicula(BuildContext context) async {
+    try {
+      await db.collection('people').add({
+        'Titulo': tituloController.text,
+        'Año': int.parse(anoController.text),
+        'Genero': generoController.text,
+        'Sinopsis': sinopsisController.text,
+        'Imagen': imagenController.text,
+      });
+
+      Navigator.pop(context);
+      Future.delayed(const Duration(milliseconds: 100), () {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Pelicula con exito'),
+        ));
+        Navigator.of(context).pushReplacement(MaterialPageRoute(
+          builder: (context) => MoviesInfoPage(),
+        ));
+      });
+    } catch (e) {
+      print('Error al guardar la pelicula: $e');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Agregar Pelicula'),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TextFormField(
+                controller: tituloController,
+                decoration: const InputDecoration(labelText: 'Título'),
+              ),
+              TextFormField(
+                controller: anoController,
+                decoration: const InputDecoration(labelText: 'Año'),
+                keyboardType: TextInputType.number,
+              ),
+              TextFormField(
+                controller: generoController,
+                decoration: const InputDecoration(labelText: 'Género'),
+              ),
+              TextFormField(
+                controller: directorController,
+                decoration: const InputDecoration(labelText: 'Director'),
+              ),
+              TextFormField(
+                controller: sinopsisController,
+                decoration: const InputDecoration(labelText: 'Sinopsis'),
+              ),
+              TextFormField(
+                controller: imagenController,
+                decoration: const InputDecoration(labelText: 'Imagen'),
+              ),
+              const SizedBox(height: 40.0),
+              Center(
+                child: SizedBox(
+                  width: 180,
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      guardarPelicula(context);
+                    },
+                    style: ButtonStyle(
+                      backgroundColor: MaterialStateProperty.all<Color>(
+                          Colors.green[800] ?? Colors.green),
+                      foregroundColor:
+                          MaterialStateProperty.all<Color>(Colors.white),
+                    ),
+                    child: const Text('Guardar'),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -365,7 +466,7 @@ class MovieDetailPage extends StatelessWidget {
                   Expanded(
                     child: Text(
                       'Director: ${movie.director}',
-                      style: TextStyle(fontSize: 18),
+                      style: const TextStyle(fontSize: 18),
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -378,7 +479,7 @@ class MovieDetailPage extends StatelessWidget {
               ),
               Text(
                 movie.sinopsis,
-                style: TextStyle(fontSize: 16),
+                style: const TextStyle(fontSize: 16),
                 textAlign: TextAlign.justify,
               ),
               const SizedBox(height: 20),
@@ -401,6 +502,11 @@ class MovieDetailPage extends StatelessWidget {
                                 .delete();
                             logger.i('Pelicula eliminada con ID: ${movie.id}');
                             onMovieDeleted(); // Llamar a la función de actualización
+
+                            ScaffoldMessenger.of(context)
+                                .showSnackBar(const SnackBar(
+                              content: Text('Pelicula eliminada con éxito'),
+                            ));
 
                             // Rregesar a la vista "Movies FIrebase"
                             Navigator.pop(context);
